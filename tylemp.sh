@@ -1,29 +1,29 @@
 #!/bin/bash
-#First usable tyleamp.sh on Debian 7, test on securedragon 512M OpenVZ VPS and my own Mini-ITX PC with Debian 163.com Mirror.
+#First usable tylemp.sh on Debian 8.
 
 function check_install {
     if [ -z "`which "$1" 2>/dev/null`" ]
     then
-        executable=$1
-        shift
-        while [ -n "$1" ]
-        do
-            DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes install "$1"
-            print_info "$1 installed for $executable"
-            shift
-        done
+		executable=$1
+		shift
+		while [ -n "$1" ]
+		do
+		DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes install "$1"
+		print_info "$1 installed for $executable"
+		shift
+		done
     else
-        print_warn "$2 already installed"
+		print_warn "$2 already installed"
     fi
 }
 
 function check_remove {
     if [ -n "`which "$1" 2>/dev/null`" ]
     then
-        DEBIAN_FRONTEND=noninteractive apt-get -q -y remove --purge "$2"
-        print_info "$2 removed"
+		DEBIAN_FRONTEND=noninteractive apt-get -q -y remove --purge "$2"
+		print_info "$2 removed"
     else
-        print_warn "$2 is not installed"
+		print_warn "$2 is not installed"
     fi
 }
 
@@ -31,12 +31,12 @@ function check_sanity {
     # Do some sanity checking.
     if [ $(/usr/bin/id -u) != "0" ]
     then
-        die 'Must be run by root user'
+		die 'Must be run by root user'
     fi
 
     if [ ! -f /etc/debian_version ]
     then
-        die "Distribution is not supported"
+		die "Distribution is not supported"
     fi
 }
 
@@ -51,8 +51,8 @@ function get_domain_name() {
     lowest=`expr "$domain" : '.*\.\([a-z][a-z]*\)'`
     case "$lowest" in
     com|net|org|gov|edu|co)
-        domain=${domain%.*}
-        ;;
+		domain=${domain%.*}
+		;;
     esac
     lowest=`expr "$domain" : '.*\.\([a-z][a-z]*\)'`
     [ -z "$lowest" ] && echo "$domain" || echo "$lowest"
@@ -63,8 +63,8 @@ function get_password() {
     SALT=/var/lib/radom_salt
     if [ ! -f "$SALT" ]
     then
-        head -c 512 /dev/urandom > "$SALT"
-        chmod 400 "$SALT"
+		head -c 512 /dev/urandom > "$SALT"
+		chmod 400 "$SALT"
     fi
     password=`(cat "$SALT"; echo $1) | md5sum | base64`
     echo ${password:0:13}
@@ -109,17 +109,17 @@ function install_exim4 {
     check_install mail exim4
     if [ -f /etc/exim4/update-exim4.conf.conf ]
     then
-        sed -i \
-            "s/dc_eximconfig_configtype='local'/dc_eximconfig_configtype='internet'/" \
-            /etc/exim4/update-exim4.conf.conf
-        invoke-rc.d exim4 restart
+		sed -i \
+		"s/dc_eximconfig_configtype='local'/dc_eximconfig_configtype='internet'/" \
+		/etc/exim4/update-exim4.conf.conf
+		invoke-rc.d exim4 restart
     fi
 }
 
 function install_mysql {
-    # Install the MySQL packages
-    check_install mysqld mysql-server
-    check_install mysql mysql-client
+    # Install the MariaDB packages
+    check_install mysqld mariadb-server
+    check_install mysql mariadb-client
 
     # all the related files.
     invoke-rc.d mysql stop
@@ -147,19 +147,20 @@ function install_nginx {
     
     # Need to increase the bucket size for Debian 5.
 	if [ ! -d /etc/nginx ];
-        then
-        mkdir /etc/nginx
+		then
+		mkdir /etc/nginx
 	fi
 	if [ ! -d /etc/nginx/conf.d ];
-        then
-        mkdir /etc/nginx/conf.d
+		then
+		mkdir /etc/nginx/conf.d
 	fi
 
     sed -i s/'^worker_processes [0-9];'/'worker_processes 1;'/g /etc/nginx/nginx.conf
+	sed -i s/'^user  nginx;'/'user  www-data;'/g /etc/nginx/nginx.conf
 	invoke-rc.d nginx restart
 	if [ ! -d /var/www ];
-        then
-        mkdir /var/www
+		then
+		mkdir /var/www
 	fi
 	cat > /etc/nginx/proxy.conf <<EXND
 proxy_connect_timeout 30s;
@@ -180,54 +181,12 @@ EXND
 }
 
 function install_php {
-   apt-get -q -y --force-yes install php5-cli php5-mysql php5-gd php5-mcrypt php5-tidy php5-curl
-  }
-	
-function install_apache {
-apt-get -q -y --force-yes install apache2 libapache2-mod-php5 libapache2-mod-rpaf
-	sed -i s/'NameVirtualHost \*:80'/'NameVirtualHost \*:168'/g /etc/apache2/ports.conf 
-	sed -i s/'Listen 80'/'Listen 127.0.0.1:168'/g /etc/apache2/ports.conf 
-	cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.old
-	cat > /etc/apache2/apache2.conf <<EXNDDQW
-LockFile ${APACHE_LOCK_DIR}/accept.lock
-PidFile \${APACHE_PID_FILE}
-Timeout 300
-KeepAlive On
-MaxKeepAliveRequests 100
-KeepAliveTimeout 15
-<IfModule mpm_prefork_module>
-    StartServers          1
-    MinSpareServers       2
-    MaxSpareServers       2
-    MaxClients            3
-    MaxRequestsPerChild   10000
-</IfModule>
-User \${APACHE_RUN_USER}
-Group \${APACHE_RUN_GROUP}
-AccessFileName .htaccess
-DefaultType text/plain
-HostnameLookups Off
-ErrorLog \${APACHE_LOG_DIR}/error.log
-LogLevel warn
-Include mods-enabled/*.load
-Include mods-enabled/*.conf
-Include ports.conf
-LogFormat "%v:%p %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
-LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
-LogFormat "%h %l %u %t \"%r\" %>s %O" common
-LogFormat "%{Referer}i -> %U" referer
-LogFormat "%{User-agent}i" agent
-Include conf.d/
-Include sites-enabled/
-EXNDDQW
-
-echo "rewrite headers expires authz_host" | a2enmod
-echo "alias auth_basic authn_file authz_default authz_groupfile authz_user autoindex cgi env negotiation status" | a2dismod
-rm /etc/apache2/sites-enabled/000-default
-/etc/init.d/apache2 restart
-/etc/init.d/nginx restart
+   
+   apt-get -q -y --force-yes install php5-fpm php5-mysqlnd php5-gd php5-mcrypt php5-tidy php5-curl
 
 }
+	
+
 function install_syslogd {
     # We just need a simple vanilla syslogd. Also there is no need to log to
     # so many files (waste of fd). Just dump them into
@@ -237,17 +196,17 @@ function install_syslogd {
 
     for file in /var/log/*.log /var/log/mail.* /var/log/debug /var/log/syslog
     do
-        [ -f "$file" ] && rm -f "$file"
+		[ -f "$file" ] && rm -f "$file"
     done
     for dir in fsck news
     do
-        [ -d "/var/log/$dir" ] && rm -rf "/var/log/$dir"
+		[ -d "/var/log/$dir" ] && rm -rf "/var/log/$dir"
     done
 
     cat > /etc/syslog.conf <<END
 *.*;mail.none;cron.none -/var/log/messages
-cron.*                  -/var/log/cron
-mail.*                  -/var/log/mail
+cron.*		      -/var/log/cron
+mail.*		      -/var/log/mail
 END
 
     [ -d /etc/logrotate.d ] || mkdir -p /etc/logrotate.d
@@ -270,55 +229,17 @@ END
     invoke-rc.d inetutils-syslogd start
 }
 
-function install_eaccelerator {
-
-apt-get -y --force-yes install build-essential php5-dev bzip2
-cd /tmp
-wget http://nchc.dl.sourceforge.net/project/eaccelerator/eaccelerator/eAccelerator%200.9.6.1/eaccelerator-0.9.6.1.zip
-unzip eaccelerator-0.9.6.1.zip
-cd eaccelerator-0.9.6.1
-phpize
-./configure --enable-eaccelerator=shared --with-php-config=/usr/bin/php-config --without-eaccelerator-use-inode
-make
-make install
-
-cat >> /etc/php5/apache2/php.ini<<end
-extension=eaccelerator.so
-[eaccelerator]
-eaccelerator.shm_size=8
-eaccelerator.cache_dir=/tmp/eaccelerator
-eaccelerator.enable=1
-eaccelerator.optimizer=1
-eaccelerator.check_mtime=1
-eaccelerator.debug=0
-eaccelerator.filter=""
-eaccelerator.shm_max=0
-eaccelerator.shm_ttl=0
-eaccelerator.shm_prune_period=0
-eaccelerator.shm_only=0
-eaccelerator.compress=1
-eaccelerator.compress_level=9
-end
-
-mkdir /tmp/eaccelerator
-chmod 777 /tmp/eaccelerator
-
-
-sed -i '2a chmod 777 /tmp/eaccelerator'  /etc/rc.local
-sed -i '2a mkdir /tmp/eaccelerator'  /etc/rc.local
-/etc/init.d/apache2 restart
-}
 
 function install_vhost {
     check_install wget wget
     if [ -z "$1" ]
     then
-        die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` wordpress <hostname>"
     fi
 
 	if [ ! -d /var/www ];
-        then
-        mkdir /var/www
+		then
+		mkdir /var/www
 fi
     mkdir "/var/www/$1"
     chown -R www-data "/var/www/$1"
@@ -330,7 +251,7 @@ server {
     server_name $1;
     root /var/www/$1;
     location / {
-        index index.html index.htm;
+		index index.html index.htm;
     }
 }
 END
@@ -346,12 +267,12 @@ END
 function install_dhost {
     check_install wget wget
 	if [ ! -d /var/www ];
-        then
-        mkdir /var/www
+		then
+		mkdir /var/www
 	fi
     if [ -z "$1" ]
     then
-        die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` wordpress <hostname>"
     fi
 	mkdir "/var/www/$1"
  	chown -R www-data "/var/www/$1"
@@ -364,7 +285,7 @@ cat > "/var/www/$1/phpmyadmin.sh" <<END
 #!/bin/bash
     mkdir /tmp/wordpress.\$$
     wget -O - https://files.phpmyadmin.net/phpMyAdmin/4.4.13.1/phpMyAdmin-4.4.13.1-all-languages.tar.gz | \
-        tar zxf - -C /tmp/wordpress.\$$
+		tar zxf - -C /tmp/wordpress.\$$
     mv /tmp/wordpress.\$$/phpMyAdmin \${PWD}
     rm -rf /tmp/wordpress.\$$
 END
@@ -379,22 +300,17 @@ server
 		index index.html index.htm index.php default.html default.htm default.php;
 		root  /var/www/$1;
 
-		location / {
-			try_files \$uri @apache;
-			}
+	location / {
+		try_files \$uri \$uri/ /index.php;
+	}
 
-		location @apache {
-			internal;
-			proxy_pass http://127.0.0.1:168;
-			include proxy.conf;
-			}
-
-		location ~ .*\.(php|php5)?$
-			{
-				proxy_pass http://127.0.0.1:168;
-				include proxy.conf;
-			}
-
+	location ~ \.php$ {
+		try_files \$uri =404;
+		fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+		include fastcgi_params;
+		fastcgi_pass unix:/var/run/php5-fpm.sock;
+	}
+	
 		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
 			{
 				expires      30d;
@@ -422,34 +338,23 @@ END
 	echo Server Administrator Email="$ServerAdmin"
 	echo "==========================="
 	fi
-	cat >/etc/apache2/conf.d/$1.conf<<eof
-<VirtualHost *:168>
-ServerAdmin $ServerAdmin
-php_admin_value open_basedir "/var/www/$1:/tmp/:/var/tmp/:/proc/"
-DocumentRoot /var/www/$1
-ServerName $1
-ErrorLog /var/log/apache2/$1_error.log
-CustomLog /var/log/apache2/$1_access.log combined
-</VirtualHost>
-eof
-/etc/init.d/apache2 restart	
 }
 
 function install_typecho {
     check_install wget wget
 	if [ ! -d /var/www ];
-        then
-        mkdir /var/www
+		then
+		mkdir /var/www
 	fi
     if [ -z "$1" ]
     then
-        die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` wordpress <hostname>"
     fi
 
-    # Downloading the WordPress' latest and greatest distribution.
+    # Downloading the typecho' latest and greatest distribution.
 		rm -rf /tmp/build
     wget -O - "https://github.com/typecho/typecho/releases/download/v1.0-14.10.10-release/1.0.14.10.10.-release.tar.gz" | \
-        tar zxf - -C /tmp/
+		tar zxf - -C /tmp/
     mv /tmp/build/ "/var/www/$1"
     rm -rf /tmp/build
  	chown -R www-data "/var/www/$1"
@@ -460,7 +365,7 @@ cat > "/var/www/$1/phpmyadmin.sh" <<END
 #!/bin/bash
     mkdir /tmp/wordpress.\$$
     wget -O - https://files.phpmyadmin.net/phpMyAdmin/4.4.13.1/phpMyAdmin-4.4.13.1-all-languages.tar.gz | \
-        tar zxf - -C /tmp/wordpress.\$$
+		tar zxf - -C /tmp/wordpress.\$$
     mv /tmp/wordpress.\$$/phpMyAdmin \${PWD}
     rm -rf /tmp/wordpress.\$$
 END
@@ -474,7 +379,7 @@ END
 
     mysqladmin create "$dbname"
     echo "GRANT ALL PRIVILEGES ON \`$dbname\`.* TO \`$userid\`@localhost IDENTIFIED BY '$passwd';" | \
-        mysql
+		mysql
 
     # Setting up Nginx mapping
 
@@ -482,25 +387,21 @@ END
 server
 	{
 		listen       80;
+
 		server_name $1;
 		index index.html index.htm index.php default.html default.htm default.php;
 		root  /var/www/$1;
 
-		location / {
-			try_files \$uri @apache;
-			}
+	location / {
+		try_files \$uri \$uri/ /index.php;
+	}
 
-		location @apache {
-			internal;
-			proxy_pass http://127.0.0.1:168;
-			include proxy.conf;
-			}
-
-		location ~ .*\.(php|php5)?$
-			{
-			proxy_pass http://127.0.0.1:168;
-			include proxy.conf;
-			}
+	location ~ \.php$ {
+		try_files \$uri =404;
+		fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+		include fastcgi_params;
+		fastcgi_pass unix:/var/run/php5-fpm.sock;
+	}
 
 		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
 			{
@@ -535,18 +436,7 @@ END
 	echo Server Administrator Email="$ServerAdmin"
 	echo "==========================="
 	fi
-	cat >/etc/apache2/conf.d/$1.conf<<eof
-<VirtualHost *:168>
-ServerAdmin $ServerAdmin
-php_admin_value open_basedir "/var/www/$1:/tmp/:/var/tmp/:/proc/"
-DocumentRoot /var/www/$1
-ServerName $1
-</VirtualHost>
-#ErrorLog /var/log/apache2/$1_error.log
-#CustomLog /var/log/apache2/$1_access.log combined
-eof
-		
-/etc/init.d/apache2 restart
+
 	
 	cat >> "/root/$1.mysql.txt" <<END
 [typycho_myqsl]
@@ -560,129 +450,17 @@ END
 	echo "mysql passwd:" $passwd
 }
 
-function install_wordpress_cn {
-    check_install wget wget
-    if [ -z "$1" ]
-    then
-        die "Usage: `basename $0` wordpress <hostname>"
-    fi
-
-    # Downloading the WordPress' latest and greatest distribution.
-    mkdir /tmp/wordpress.$$
-    wget -O - http://cn.wordpress.org/latest-zh_CN.tar.gz | \
-        tar zxf - -C /tmp/wordpress.$$
-    mv /tmp/wordpress.$$/wordpress "/var/www/$1"
-    rm -rf /tmp/wordpress.$$
-    chown -R www-data "/var/www/$1"
-	chmod -R 755 "/var/www/$1"
-
-
-cat > "/var/www/$1/phpmyadmin.sh" <<END
-#!/bin/bash
-    mkdir /tmp/wordpress.\$$
-    wget -O - https://files.phpmyadmin.net/phpMyAdmin/4.4.13.1/phpMyAdmin-4.4.13.1-all-languages.tar.gz | \
-        tar zxf - -C /tmp/wordpress.\$$
-    mv /tmp/wordpress.\$$/phpMyAdmin \${PWD}
-    rm -rf /tmp/wordpress.\$$
-		cat  ~/.my.cnf
-END
-
-    # Setting up the MySQL database
-    dbname=`echo $1 | tr . _`
-    userid=`get_domain_name $1`
-    # MySQL userid cannot be more than 15 characters long
-    userid="${userid:0:15}"
-    passwd=`get_password "$userid@mysql"`
-    cp "/var/www/$1/wp-config-sample.php" "/var/www/$1/wp-config.php"
-    sed -i "s/database_name_here/$dbname/; s/username_here/$userid/; s/password_here/$passwd/" \
-        "/var/www/$1/wp-config.php"
-	sed -i "31a define(\'WP_CACHE\', true);"  "/var/www/$1/wp-config.php"
-    mysqladmin create "$dbname"
-    echo "GRANT ALL PRIVILEGES ON \`$dbname\`.* TO \`$userid\`@localhost IDENTIFIED BY '$passwd';" | \
-        mysql
-
-    # Setting up Nginx mapping
-    cat > "/etc/nginx/conf.d/$1.conf" <<END
-server
-	{
-		listen       80;
-		server_name $1;
-		index index.html index.htm index.php default.html default.htm default.php;
-		root  /var/www/$1;
-
-		location / {
-			try_files \$uri @apache;
-			}
-
-		location @apache {
-			internal;
-			proxy_pass http://127.0.0.1:168;
-			include proxy.conf;
-			}
-
-		location ~ .*\.(php|php5)?$
-			{
-			proxy_pass http://127.0.0.1:168;
-			include proxy.conf;
-			}
-
-		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
-			{
-				expires      30d;
-			}
-
-		location ~ .*\.(js|css)?$
-			{
-				expires      30d;
-			}
-
-		$al
-	}
-END
-
-cat >> "/root/$1.mysql.txt" <<END
-[wordpress_myqsl]
-dbname = $dbname
-username = $userid
-password = $passwd
-END
-    invoke-rc.d nginx reload
-	
-	ServerAdmin=""
-	read -p "Please input Administrator Email Address:" ServerAdmin
-	if [ "$ServerAdmin" == "" ]; then
-		echo "Administrator Email Address will set to webmaster@example.com!"
-		ServerAdmin="webmaster@example.com"
-	else
-	echo "==========================="
-	echo Server Administrator Email="$ServerAdmin"
-	echo "==========================="
-	fi
-	cat >/etc/apache2/conf.d/$1.conf<<eof
-<VirtualHost *:168>
-ServerAdmin $ServerAdmin
-php_admin_value open_basedir "/var/www/$1:/tmp/:/var/tmp/:/proc/"
-DocumentRoot /var/www/$1
-ServerName $1
-#ErrorLog /var/log/apache2/$1_error.log
-#CustomLog /var/log/apache2/$1_access.log combined
-</VirtualHost>
-eof
-/etc/init.d/apache2 restart
-}
-
-
 function install_wordpress_en {
     check_install wget wget
     if [ -z "$1" ]
     then
-        die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` wordpress <hostname>"
     fi
 
     # Downloading the WordPress' latest and greatest distribution.
     mkdir /tmp/wordpress.$$
     wget -O - http://wordpress.org/latest.tar.gz | \
-        tar zxf - -C /tmp/wordpress.$$
+		tar zxf - -C /tmp/wordpress.$$
     mv /tmp/wordpress.$$/wordpress "/var/www/$1"
     rm -rf /tmp/wordpress.$$
     chown -R www-data "/var/www/$1"
@@ -693,7 +471,7 @@ cat > "/var/www/$1/phpmyadmin.sh" <<END
 #!/bin/bash
     mkdir /tmp/wordpress.\$$
     wget -O - https://files.phpmyadmin.net/phpMyAdmin/4.4.13.1/phpMyAdmin-4.4.13.1-all-languages.tar.gz | \
-        tar zxf - -C /tmp/wordpress.\$$
+		tar zxf - -C /tmp/wordpress.\$$
     mv /tmp/wordpress.\$$/phpMyAdmin \${PWD}
     rm -rf /tmp/wordpress.\$$
 		cat  ~/.my.cnf
@@ -701,17 +479,17 @@ END
 
     # Setting up the MySQL database
     dbname=`echo $1 | tr . _`
-    userid=`get_domain_name $1`
+    #userid=`get_domain_name $1`
     # MySQL userid cannot be more than 15 characters long
-    userid="${userid:0:15}"
+    userid="${dbname:0:15}"
     passwd=`get_password "$userid@mysql"`
     cp "/var/www/$1/wp-config-sample.php" "/var/www/$1/wp-config.php"
     sed -i "s/database_name_here/$dbname/; s/username_here/$userid/; s/password_here/$passwd/" \
-        "/var/www/$1/wp-config.php"
+		"/var/www/$1/wp-config.php"
 	sed -i "31a define(\'WP_CACHE\', true);"  "/var/www/$1/wp-config.php"
     mysqladmin create "$dbname"
     echo "GRANT ALL PRIVILEGES ON \`$dbname\`.* TO \`$userid\`@localhost IDENTIFIED BY '$passwd';" | \
-        mysql
+		mysql
 
     # Setting up Nginx mapping
     cat > "/etc/nginx/conf.d/$1.conf" <<END
@@ -722,22 +500,17 @@ server
 		index index.html index.htm index.php default.html default.htm default.php;
 		root  /var/www/$1;
 
-		location / {
-			try_files \$uri @apache;
-			}
+    location / {
+            try_files \$uri \$uri/ /index.php;
+    }
 
-		location @apache {
-			internal;
-			proxy_pass http://127.0.0.1:168;
-			include proxy.conf;
-			}
-
-		location ~ .*\.(php|php5)?$
-			{
-			proxy_pass http://127.0.0.1:168;
-			include proxy.conf;
-			}
-
+    location ~ \.php$ {
+            try_files \$uri =404;
+            fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+            include fastcgi_params;
+            fastcgi_pass unix:/var/run/php5-fpm.sock;
+    }
+	
 		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
 			{
 				expires      30d;
@@ -770,17 +543,6 @@ END
 	echo Server Administrator Email="$ServerAdmin"
 	echo "==========================="
 	fi
-	cat >/etc/apache2/conf.d/$1.conf<<eof
-<VirtualHost *:168>
-ServerAdmin $ServerAdmin
-php_admin_value open_basedir "/var/www/$1:/tmp/:/var/tmp/:/proc/"
-DocumentRoot /var/www/$1
-ServerName $1
-#ErrorLog /var/log/apache2/$1_error.log
-#CustomLog /var/log/apache2/$1_access.log combined
-</VirtualHost>
-eof
-/etc/init.d/apache2 restart
 }
 
 
@@ -789,7 +551,7 @@ function install_rainloop {
     check_install bsdtar bsdtar
     if [ -z "$1" ]
     then
-        die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` wordpress <hostname>"
     fi
 
     # Downloading the Rainloop' latest and greatest distribution.
@@ -798,57 +560,55 @@ function install_rainloop {
     bsdtar xf - -C /tmp/rainloop.$$
     mv /tmp/rainloop.$$ "/var/www/$1"
     rm -rf /tmp/rainloop.$$
-
+    cat > "/var/www/$1/.htaccess" <<END
+    php_value upload_max_filesize 8m
+    php_value post_max_size 25m
+END
     chown -R www-data "/var/www/$1"
     chmod -R 755 "/var/www/$1"
 
     #
     # Setting up the MySQL database
     dbname=`echo $1 | tr . _`
-    userid=`get_domain_name $1`
+    #userid=`get_domain_name $1`
     # MySQL userid cannot be more than 15 characters long
-    userid="${userid:0:15}"
+    userid="${dbname:0:15}"
     mysqladmin create "$dbname"
     echo "GRANT ALL PRIVILEGES ON \`$dbname\`.* TO \`$userid\`@localhost IDENTIFIED BY '$passwd';" | \
-        mysql
+		mysql
 
     # Setting up Nginx mapping
     cat > "/etc/nginx/conf.d/$1.conf" <<END
 server
-        {
-                listen       80;
-                server_name $1;
-                index index.html index.htm index.php default.html default.htm default.php;
-                root  /var/www/$1;
+		{
+		    listen       80;
+		    server_name $1;
+		    index index.html index.htm index.php default.html default.htm default.php;
+		    root  /var/www/$1;
 
-                location / {
-                        try_files \$uri @apache;
-                        }
+	location / {
+		try_files \$uri \$uri/ /index.php;
+	}
 
-               location @apache {
-                        internal;
-                        proxy_pass http://127.0.0.1:168;
-                        include proxy.conf;
-                        }
+	location ~ \.php$ {
+		try_files \$uri =404;
+		fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+		include fastcgi_params;
+		fastcgi_pass unix:/var/run/php5-fpm.sock;
+	}
 
-                location ~ .*\.(php|php5)?$
-                        {
-                        proxy_pass http://127.0.0.1:168;
-                        include proxy.conf;
-                        }
+		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
+				{
+						expires      30d;
+				}
 
-                location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
-                        {
-                                expires      30d;
-                        }
+		    location ~ .*\.(js|css)?$
+				{
+						expires      30d;
+				}
 
-                location ~ .*\.(js|css)?$
-                        {
-                                expires      30d;
-                        }
-
-                $al
-        }
+		    $al
+		}
 END
 
 cat >> "/root/$1.mysql.txt" <<END
@@ -859,46 +619,35 @@ password = $passwd
 END
     invoke-rc.d nginx reload
 
-        ServerAdmin=""
-        read -p "Please input Administrator Email Address:" ServerAdmin
-        if [ "$ServerAdmin" == "" ]; then
-                echo "Administrator Email Address will set to webmaster@example.com!"
-                ServerAdmin="webmaster@example.com"
-        else
-        echo "==========================="
-        echo Server Administrator Email="$ServerAdmin"
-        echo "==========================="
-        fi
-        cat >/etc/apache2/conf.d/$1.conf<<eof
-<VirtualHost *:168>
-ServerAdmin $ServerAdmin
-php_admin_value open_basedir "/var/www/$1:/tmp/:/var/tmp/:/proc/"
-DocumentRoot /var/www/$1
-ServerName $1
-#ErrorLog /var/log/apache2/$1_error.log
-#CustomLog /var/log/apache2/$1_access.log combined
-</VirtualHost>
-eof
-/etc/init.d/apache2 restart
+		ServerAdmin=""
+		read -p "Please input Administrator Email Address:" ServerAdmin
+		if [ "$ServerAdmin" == "" ]; then
+		    echo "Administrator Email Address will set to webmaster@example.com!"
+		    ServerAdmin="webmaster@example.com"
+		else
+		echo "==========================="
+		echo Server Administrator Email="$ServerAdmin"
+		echo "==========================="
+		fi
 }
 
 function install_phpmyadmin {
     check_install wget wget
     if [ -z "$1" ]
     then
-        die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` wordpress <hostname>"
     fi
 
     # Downloading the WordPress' latest and greatest distribution.
     mkdir /tmp/wordpress.$$
     wget -O - https://files.phpmyadmin.net/phpMyAdmin/4.4.13.1/phpMyAdmin-4.4.13.1-all-languages.tar.gz | \
-        tar zxf - -C /tmp/wordpress.$$
+		tar zxf - -C /tmp/wordpress.$$
     mv /tmp/wordpress.$$/phpMyAdmin "/var/www/$1"
     rm -rf /tmp/wordpress.$$
     chown -R www-data "/var/www/$1"
 	chmod -R 755 "/var/www/$1"
 
-        # Setting up Nginx mapping
+		# Setting up Nginx mapping
     cat > "/etc/nginx/conf.d/$1.conf" <<END
 server
 	{
@@ -907,21 +656,16 @@ server
 		index index.html index.htm index.php default.html default.htm default.php;
 		root  /var/www/$1;
 
-		location / {
-			try_files \$uri @apache;
-			}
+	location / {
+		try_files \$uri \$uri/ /index.php;
+	}
 
-		location @apache {
-			internal;
-			proxy_pass http://127.0.0.1:168;
-			include proxy.conf;
-			}
-
-		location ~ .*\.(php|php5)?$
-			{
-			proxy_pass http://127.0.0.1:168;
-			include proxy.conf;
-			}
+	location ~ \.php$ {
+		try_files \$uri =404;
+		fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+		include fastcgi_params;
+		fastcgi_pass unix:/var/run/php5-fpm.sock;
+	}
 
 		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
 			{
@@ -949,17 +693,6 @@ invoke-rc.d nginx reload
 	echo Server Administrator Email="$ServerAdmin"
 	echo "==========================="
 	fi
-	cat >/etc/apache2/conf.d/$1.conf<<eof
-<VirtualHost *:168>
-ServerAdmin $ServerAdmin
-php_admin_value open_basedir "/var/www/$1:/tmp/:/var/tmp/:/proc/"
-DocumentRoot /var/www/$1
-ServerName $1
-#ErrorLog /var/log/apache2/$1_error.log
-#CustomLog /var/log/apache2/$1_access.log combined
-</VirtualHost>
-eof
-/etc/init.d/apache2 restart
 
 cat ~/.my.cnf
 }
@@ -984,14 +717,14 @@ if [ $? -ne 0 ]; then
     cat > /etc/init.d/vzquota  << EndFunc
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:                 vzquota
+# Provides:		     vzquota
 # Required-Start:
 # Required-Stop:
-# Should-Start:             $local_fs $syslog
-# Should-Stop:              $local_fs $syslog
-# Default-Start:            0 1 2 3 4 5 6
+# Should-Start:		 $local_fs $syslog
+# Should-Stop:		  $local_fs $syslog
+# Default-Start:		0 1 2 3 4 5 6
 # Default-Stop:
-# Short-Description:        Fixed(?) vzquota init script
+# Short-Description:		Fixed(?) vzquota init script
 ### END INIT INFO
 EndFunc
 fi
@@ -1017,8 +750,8 @@ function remove_unneeded {
     # Need to stop sendmail as removing the package does not seem to stop it.
     if [ -f /usr/lib/sm.bin/smtpd ]
     then
-        invoke-rc.d sendmail stop
-        check_remove /usr/lib/sm.bin/smtpd 'sendmail*'
+		invoke-rc.d sendmail stop
+		check_remove /usr/lib/sm.bin/smtpd 'sendmail*'
     fi
 }
 
@@ -1045,12 +778,12 @@ function update_nginx {
 	apt-get -q -y remove nginx
 	apt-get -q -y --force-yes install nginx
 	if [ ! -d /etc/nginx ];
-        then
-        mkdir /etc/nginx
+		then
+		mkdir /etc/nginx
 	fi
 	if [ ! -d /etc/nginx/conf.d ];
-        then
-        mkdir /etc/nginx/conf.d
+		then
+		mkdir /etc/nginx/conf.d
 	fi
     cat > /etc/nginx/conf.d/actgod.conf <<END
 client_max_body_size 20m;
@@ -1059,8 +792,8 @@ END
     sed -i s/'^worker_processes [0-9];'/'worker_processes 1;'/g /etc/nginx/nginx.conf
 	invoke-rc.d nginx restart
 	if [ ! -d /var/www ];
-        then
-        mkdir /var/www
+		then
+		mkdir /var/www
 	fi
 	cat > /etc/nginx/proxy.conf <<EXND
 proxy_connect_timeout 30s;
@@ -1100,9 +833,6 @@ nginx)
 php)
     install_php
 	;;
-apache)
-    install_apache
-	;;
 system)
 	check_version
     remove_unneeded
@@ -1121,9 +851,6 @@ vhost)
     install_vhost $2
     ;;
 wordpress)
-    install_wordpress_cn $2
-    ;;
-wordpress_en)
     install_wordpress_en $2
     ;;
 rainloop)
@@ -1140,16 +867,12 @@ stable)
     install_mysql	
     install_nginx
     install_php
-	install_apache
 		;;
 updatenginx)
     update_nginx
 		;;
 phpmyadmin)
     install_phpmyadmin $2
-    ;;
-eaccelerator)
-    install_eaccelerator
     ;;
 sshport)
 cat > /etc/xinetd.d/dropbear <<END
@@ -1174,41 +897,6 @@ addnginx)
 		sed -i s/iGodactgod/$2/g /etc/nginx/nginx.conf
 		invoke-rc.d nginx restart
 		;;
-addapache)
-cat > /etc/apache2/apache2.conf <<EXNDDQW
-LockFile ${APACHE_LOCK_DIR}/accept.lock
-PidFile \${APACHE_PID_FILE}
-Timeout 300
-KeepAlive On
-MaxKeepAliveRequests 100
-KeepAliveTimeout 15
-<IfModule mpm_prefork_module>
-    StartServers          $2
-    MinSpareServers       2
-    MaxSpareServers       3
-    MaxClients            $3
-    MaxRequestsPerChild   10000
-</IfModule>
-User \${APACHE_RUN_USER}
-Group \${APACHE_RUN_GROUP}
-AccessFileName .htaccess
-DefaultType text/plain
-HostnameLookups Off
-ErrorLog \${APACHE_LOG_DIR}/error.log
-LogLevel warn
-Include mods-enabled/*.load
-Include mods-enabled/*.conf
-Include ports.conf
-LogFormat "%v:%p %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
-LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
-LogFormat "%h %l %u %t \"%r\" %>s %O" common
-LogFormat "%{Referer}i -> %U" referer
-LogFormat "%{User-agent}i" agent
-Include conf.d/
-Include sites-enabled/
-EXNDDQW
-/etc/init.d/apache2 restart
-;;
 ssh)
     cat >> /etc/shells <<END
 /sbin/nologin
@@ -1216,25 +904,12 @@ END
 useradd $2 -s /sbin/nologin
 echo $2:$3 | chpasswd 
     ;;
-httpproxy)
-    cat > /etc/nginx/sites-enabled/httpproxy.conf <<END
-	server {
-	listen $2;
-	resolver 8.8.8.8;
-	location / {
-	proxy_pass http://\$http_host\$request_uri;
-		}
-	}
-END
-	invoke-rc.d nginx restart
-	;;
 *)
     echo 'Usage:' `basename $0` '[option]'
     echo 'Available option:'
-    for option in system exim4 mysql nginx php wordpress wordpress_en rainloop ssh addnginx stable testing dhost vhost httpproxy eaccelerator  apache addapache sshport phpmyadmin
+    for option in system exim4 mysql nginx php wordpress rainloop ssh addnginx stable dhost vhost sshport phpmyadmin
     do
-        echo '  -' $option
+		echo '  -' $option
     done
     ;;
 esac
-
