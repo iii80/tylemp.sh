@@ -234,7 +234,7 @@ function install_vhost {
 	check_install wget wget
 	if [ -z "$1" ]
 	then
-		die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` vhost <hostname>"
 	fi
 
 	if [ ! -d /var/www ];
@@ -272,7 +272,7 @@ function install_dhost {
 	fi
 	if [ -z "$1" ]
 	then
-		die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` dhost <hostname>"
 	fi
 	mkdir "/var/www/$1"
  	chown -R www-data "/var/www/$1"
@@ -348,7 +348,7 @@ function install_typecho {
 	fi
 	if [ -z "$1" ]
 	then
-		die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` typecho <hostname>"
 	fi
 
 	# Downloading the typecho' latest and greatest distribution.
@@ -374,7 +374,7 @@ END
 	dbname=`echo $1 | tr . _`
 	userid=`get_domain_name $1`
 	# MySQL userid cannot be more than 15 characters long
-	userid="${userid:0:15}"
+	userid="${dbname:0:15}"
 	passwd=`get_password "$userid@mysql"`
 
 	mysqladmin create "$dbname"
@@ -417,12 +417,6 @@ server
 	}
 END
 
-cat >> "/root/$1.mysql.txt" <<END
-[wordpress_myqsl]
-dbname = $dbname
-username = $userid
-password = $passwd
-END
 	invoke-rc.d nginx reload
 		
 
@@ -481,7 +475,7 @@ END
 	dbname=`echo $1 | tr . _`
 	userid=`get_domain_name $1`
 	# MySQL userid cannot be more than 15 characters long
-	userid="${userid:0:15}"
+	userid="${dbname:0:15}"
 	passwd=`get_password "$userid@mysql"`
 	cp "/var/www/$1/wp-config-sample.php" "/var/www/$1/wp-config.php"
 	sed -i "s/database_name_here/$dbname/; s/username_here/$userid/; s/password_here/$passwd/" \
@@ -551,7 +545,7 @@ function install_rainloop {
 	check_install bsdtar bsdtar
 	if [ -z "$1" ]
 	then
-		die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` rainloop <hostname>"
 	fi
 
 	# Downloading the Rainloop' latest and greatest distribution.
@@ -572,7 +566,7 @@ END
 	dbname=`echo $1 | tr . _`
 	userid=`get_domain_name $1`
 	# MySQL userid cannot be more than 15 characters long
-	userid="${userid:0:15}"
+	userid="${dbname:0:15}"
 	mysqladmin create "$dbname"
 	echo "GRANT ALL PRIVILEGES ON \`$dbname\`.* TO \`$userid\`@localhost IDENTIFIED BY '$passwd';" | \
 		mysql
@@ -635,7 +629,7 @@ function install_phpmyadmin {
 	check_install wget wget
 	if [ -z "$1" ]
 	then
-		die "Usage: `basename $0` wordpress <hostname>"
+		die "Usage: `basename $0` phpmyadmin <hostname>"
 	fi
 
 	# Downloading the WordPress' latest and greatest distribution.
