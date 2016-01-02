@@ -750,15 +750,6 @@ function remove_unneeded {
 }
 
 function update_stable {
-
-cp	/etc/apt/sources.list /etc/apt/sources.list.backup
-cat > /etc/apt/sources.list <<END
-deb http://ftp.debian.org/debian jessie main contrib non-free
-deb http://security.debian.org jessie/updates main contrib non-free
-deb http://nginx.org/packages/debian/ jessie nginx
-deb-src http://nginx.org/packages/debian/ jessie nginx
-END
-	apt-get -q -y update
 	apt-get -q -y upgrade
 	apt-get -q -y dist-upgrade
 	apt-get -y install libc6 perl libdb2 debconf dialog bsdutils
