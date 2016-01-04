@@ -278,19 +278,6 @@ function install_dhost {
  	chown -R www-data "/var/www/$1"
 	chmod -R 755 "/var/www/$1"
 
-
-
-
-cat > "/var/www/$1/phpmyadmin.sh" <<END
-#!/bin/bash
-	mkdir /tmp/wordpress.\$$
-	wget -O - https://files.phpmyadmin.net/phpMyAdmin/4.4.13.1/phpMyAdmin-4.4.13.1-all-languages.tar.gz | \
-		tar zxf - -C /tmp/wordpress.\$$
-	mv /tmp/wordpress.\$$/phpMyAdmin \${PWD}
-	rm -rf /tmp/wordpress.\$$
-END
-
-
 # Setting up Nginx mapping
 	cat > "/etc/nginx/conf.d/$1.conf" <<END
 server
@@ -359,16 +346,6 @@ function install_typecho {
 	rm -rf /tmp/build
  	chown -R www-data "/var/www/$1"
 	chmod -R 755 "/var/www/$1"
-
-
-cat > "/var/www/$1/phpmyadmin.sh" <<END
-#!/bin/bash
-	mkdir /tmp/wordpress.\$$
-	wget -O - https://files.phpmyadmin.net/phpMyAdmin/4.4.13.1/phpMyAdmin-4.4.13.1-all-languages.tar.gz | \
-		tar zxf - -C /tmp/wordpress.\$$
-	mv /tmp/wordpress.\$$/phpMyAdmin \${PWD}
-	rm -rf /tmp/wordpress.\$$
-END
 
 	# Setting up the MySQL database
 	dbname=`echo $1 | tr . _`
@@ -459,17 +436,6 @@ function install_wordpress_en {
 	rm -rf /tmp/wordpress.$$
 	chown -R www-data "/var/www/$1"
 	chmod -R 755 "/var/www/$1"
-
-
-cat > "/var/www/$1/phpmyadmin.sh" <<END
-#!/bin/bash
-	mkdir /tmp/wordpress.\$$
-	wget -O - https://files.phpmyadmin.net/phpMyAdmin/4.4.13.1/phpMyAdmin-4.4.13.1-all-languages.tar.gz | \
-		tar zxf - -C /tmp/wordpress.\$$
-	mv /tmp/wordpress.\$$/phpMyAdmin \${PWD}
-	rm -rf /tmp/wordpress.\$$
-		cat  ~/.my.cnf
-END
 
 	# Setting up the MySQL database
 	dbname=`echo $1 | tr . _`
@@ -636,7 +602,7 @@ function install_phpmyadmin {
 	mkdir /tmp/wordpress.$$
 	wget -O - https://files.phpmyadmin.net/phpMyAdmin/4.4.13.1/phpMyAdmin-4.4.13.1-all-languages.tar.gz | \
 		tar zxf - -C /tmp/wordpress.$$
-	mv /tmp/wordpress.$$/phpMyAdmin "/var/www/$1"
+	mv /tmp/wordpress.$$/phpMyAdmin* "/var/www/$1/phpMyAdmin"
 	rm -rf /tmp/wordpress.$$
 	chown -R www-data "/var/www/$1"
 	chmod -R 755 "/var/www/$1"
