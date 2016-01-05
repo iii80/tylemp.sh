@@ -716,6 +716,7 @@ function remove_unneeded {
 }
 
 function update_stable {
+	apt-get -q -y update
 	apt-get -q -y upgrade
 	apt-get -q -y dist-upgrade
 	apt-get -y install libc6 perl libdb2 debconf dialog bsdutils
