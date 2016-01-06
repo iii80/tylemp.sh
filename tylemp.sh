@@ -719,7 +719,7 @@ function update_stable {
 	apt-get -q -y update
 	apt-get -q -y upgrade
 	apt-get -q -y dist-upgrade
-	apt-get -y install libc6 perl libdb2 debconf dialog bsdutils
+	apt-get -y install libc6 perl debconf dialog bsdutils
 	apt-get -y install apt apt-utils dselect dpkg
 	#~ apt-get -q -y upgrade
 }
