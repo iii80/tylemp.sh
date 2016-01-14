@@ -339,11 +339,11 @@ function install_typecho {
 	fi
 
 	# Downloading the typecho' latest and greatest distribution.
-		rm -rf /tmp/build
+		mkdir /tmp/typecho.$$
 	wget -O - "https://github.com/typecho/typecho/releases/download/v1.0-14.10.10-release/1.0.14.10.10.-release.tar.gz" | \
-		tar zxf - -C /tmp/
-	mv /tmp/build/ "/var/www/$1"
-	rm -rf /tmp/build
+		tar zxf - -C /tmp/typecho.$$
+	mv /tmp/typecho.$$/build/ "/var/www/$1"
+	rm -rf /tmp/typecho.$$
  	chown -R www-data "/var/www/$1"
 	chmod -R 755 "/var/www/$1"
 
@@ -505,6 +505,91 @@ END
 	fi
 }
 
+
+function install_carbonforum {
+	check_install wget wget
+	if [ -z "$1" ]
+	then
+		die "Usage: `basename $0` carbon <hostname>"
+	fi
+
+	# Downloading the WordPress' latest and greatest distribution.
+	mkdir /tmp/carbonforum.$$
+	wget -O - https://github.com/lincanbin/Carbon-Forum/archive/5.0.1.tar.gz | \
+		tar zxf - -C /tmp/carbonforum.$$
+	mv /tmp/carbonforum.$$/Carbon-Forum-* "/var/www/$1"
+	rm -rf /tmp/carbonforum.$$
+	chown -R www-data "/var/www/$1"
+	chmod -R 755 "/var/www/$1"
+
+	# Setting up the MySQL database
+	dbname=`echo $1 | tr . _`
+	userid=`get_domain_name $1`
+	# MySQL userid cannot be more than 15 characters long
+	userid="${dbname:0:15}"
+	passwd=`get_password "$userid@mysql"`
+	mysqladmin create "$dbname"
+	echo "GRANT ALL PRIVILEGES ON \`$dbname\`.* TO \`$userid\`@localhost IDENTIFIED BY '$passwd';" | \
+		mysql
+
+	# Setting up Nginx mapping
+	cat > "/etc/nginx/conf.d/$1.conf" <<END
+server
+	{
+		listen       80;
+		server_name $1;
+		index index.html index.htm index.php default.html default.htm default.php;
+		root  /var/www/$1;
+
+	location / {
+	        try_files \$uri \$uri/ /index.php;
+	}
+
+	location ~ \.php$ {
+	        try_files \$uri =404;
+	        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+	        include fastcgi_params;
+	        fastcgi_pass unix:/var/run/php5-fpm.sock;
+	}
+	
+		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
+			{
+				expires      30d;
+			}
+
+		location ~ .*\.(js|css)?$
+			{
+				expires      30d;
+			}
+
+	include /var/www/$1/nginx.conf;
+		$al
+	}	
+END
+
+cat >> "/root/$1.mysql.txt" <<END
+[CarbonForum_myqsl]
+dbname = $dbname
+username = $userid
+password = $passwd
+END
+	invoke-rc.d nginx reload
+	
+	ServerAdmin=""
+	read -p "Please input Administrator Email Address:" ServerAdmin
+	if [ "$ServerAdmin" == "" ]; then
+		echo "Administrator Email Address will set to webmaster@example.com!"
+		ServerAdmin="webmaster@example.com"
+	else
+	echo "==========================="
+	echo Server Administrator Email="$ServerAdmin"
+	echo "==========================="
+	fi
+
+        echo "mysql dataname:" $dbname
+        echo "mysql username:" $userid
+        echo "mysql passwd:" $passwd
+}
 
 function install_rainloop {
 	check_install wget wget
@@ -805,6 +890,9 @@ vhost)
 wordpress)
 	install_wordpress_en $2
 	;;
+carbon)
+	install_carbonforum $2
+	;;
 rainloop)
 	install_rainloop $2
 	;;
@@ -859,7 +947,7 @@ echo $2:$3 | chpasswd
 *)
 	echo 'Usage:' `basename $0` '[option]'
 	echo 'Available option:'
-	for option in system exim4 mysql nginx php wordpress rainloop ssh addnginx stable dhost vhost sshport phpmyadmin
+	for option in system exim4 mysql nginx php wordpress carbon rainloop ssh addnginx stable dhost vhost sshport phpmyadmin
 	do
 		echo '  -' $option
 	done
