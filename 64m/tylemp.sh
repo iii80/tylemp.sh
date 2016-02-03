@@ -232,6 +232,9 @@ function install_php {
 
 	apt-get -q -y --force-yes install php5-fpm
 	sed -i s/'^; process.max = 128'/'process.max = 1'/g /etc/php5/fpm/php-fpm.conf
+			sed -i \
+				"s/memory_limit = 128M/memory_limit = 50M/" \
+				/etc/php5/fpm/php.ini
 
 	service php5-fpm stop
         apt-get -q -y --force-yes install php5-mysqlnd php5-gd php5-mcrypt php5-tidy php5-curl
@@ -502,6 +505,7 @@ function install_wordpress_en {
 	sed -i "s/database_name_here/$dbname/; s/username_here/$userid/; s/password_here/$passwd/" \
 		"/var/www/$1/wp-config.php"
 	sed -i "31a define(\'WP_CACHE\', true);"  "/var/www/$1/wp-config.php"
+	chown -R www-data "/var/www/$1"
 	mysqladmin create "$dbname"
 	echo "GRANT ALL PRIVILEGES ON \`$dbname\`.* TO \`$userid\`@localhost IDENTIFIED BY '$passwd';" | \
 		mysql

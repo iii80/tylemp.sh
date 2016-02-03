@@ -494,6 +494,7 @@ function install_wordpress_en {
 	sed -i "s/database_name_here/$dbname/; s/username_here/$userid/; s/password_here/$passwd/" \
 		"/var/www/$1/wp-config.php"
 	sed -i "31a define(\'WP_CACHE\', true);"  "/var/www/$1/wp-config.php"
+	chown -R www-data "/var/www/$1"
 	mysqladmin create "$dbname"
 	echo "GRANT ALL PRIVILEGES ON \`$dbname\`.* TO \`$userid\`@localhost IDENTIFIED BY '$passwd';" | \
 		mysql
