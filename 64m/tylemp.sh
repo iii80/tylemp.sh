@@ -1,5 +1,5 @@
 #!/bin/bash
-#First usable tylemp.sh on Debian 8.
+#First usable tylemp.sh on Debian 8 for 64M to 128M RAM VPS
 
 function check_install {
 	if [ -z "`which "$1" 2>/dev/null`" ]
