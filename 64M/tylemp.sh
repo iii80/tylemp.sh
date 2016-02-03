@@ -117,8 +117,8 @@ function install_exim4 {
 }
 
 function install_mysql {
-# Install MariaDB in MyISAM 
-        check_install mysqlcommon mysql-common
+	check_install mysqlcommon mysql-common
+	mv /etc/mysql/my.cnf /etc/mysql/my.cnf.bak
         cat > /etc/mysql/my.cnf <<END
 [mysqld]
 [client]
@@ -175,6 +175,7 @@ END
 	# all the related files.
 	invoke-rc.d mysql stop
 	rm -f /var/lib/mysql/ib*
+	invoke-rc.d mysql start
 
 	# Generating a new password for the root user.
 	passwd=`get_password root@mysql`
@@ -227,10 +228,17 @@ EXND
 
 function install_php {
 	service mysql stop
-	service nginx stop
-   apt-get -q -y --force-yes install php5-fpm php5-mysqlnd php5-gd php5-mcrypt php5-tidy php5-curl
+	service nginx stop 
+
+	apt-get -q -y --force-yes install php5-fpm
+	sed -i s/'^; process.max = 128'/'process.max = 1'/g /etc/php5/fpm/php-fpm.conf
+
+	service php5-fpm stop
+        apt-get -q -y --force-yes install php5-mysqlnd php5-gd php5-mcrypt php5-tidy php5-curl
+
 	service mysql start
 	service nginx start
+
 }
 	
 
