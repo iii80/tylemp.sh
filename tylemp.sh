@@ -117,57 +117,6 @@ function install_exim4 {
 }
 
 function install_mysql {
-# Install MariaDB in MyISAM 
-        check_install mysqlcommon mysql-common
-        cat > /etc/mysql/my.cnf <<END
-[mysqld]
-[client]
-port            = 3306
-socket          = /var/run/mysqld/mysqld.sock
-
-
-[mysqld_safe]
-socket          = /var/run/mysqld/mysqld.sock
-nice            = 0
-
-[mysqld]
-user            = mysql
-pid-file        = /var/run/mysqld/mysqld.pid
-socket          = /var/run/mysqld/mysqld.sock
-port            = 3306
-basedir         = /usr
-datadir         = /var/lib/mysql
-tmpdir          = /tmp
-lc-messages-dir = /usr/share/mysql
-skip-external-locking
-bind-address            = 127.0.0.1
-key_buffer              = 16K
-max_allowed_packet      = 1M
-thread_stack            = 64K
-thread_cache_size       = 8
-myisam-recover         = BACKUP
-table_cache            = 20
-query_cache_limit       = 1M
-query_cache_size        = 2M
-log_error = /var/log/mysql/error.log
-expire_logs_days        = 10
-max_binlog_size         = 100M
-skip-innodb
-default-storage-engine = MyISAM
-
-[mysqldump]
-quick
-quote-names
-max_allowed_packet      = 16M
-
-[mysql]
-
-[isamchk]
-key_buffer              = 16M
-
-!includedir /etc/mysql/conf.d/
-END
-
 	# Install the MariaDB packages
 	check_install mysqld mariadb-server
 	check_install mysql mariadb-client
@@ -175,6 +124,12 @@ END
 	# all the related files.
 	invoke-rc.d mysql stop
 	rm -f /var/lib/mysql/ib*
+	cat > /etc/mysql/conf.d/actgod.cnf <<END
+[mysqld]
+key_buffer_size = 8M
+query_cache_size = 0
+END
+	invoke-rc.d mysql start
 
 	# Generating a new password for the root user.
 	passwd=`get_password root@mysql`
@@ -226,11 +181,9 @@ EXND
 }
 
 function install_php {
-	service mysql stop
-	service nginx stop
+   
    apt-get -q -y --force-yes install php5-fpm php5-mysqlnd php5-gd php5-mcrypt php5-tidy php5-curl
-	service mysql start
-	service nginx start
+
 }
 	
 
@@ -494,7 +447,6 @@ function install_wordpress_en {
 	sed -i "s/database_name_here/$dbname/; s/username_here/$userid/; s/password_here/$passwd/" \
 		"/var/www/$1/wp-config.php"
 	sed -i "31a define(\'WP_CACHE\', true);"  "/var/www/$1/wp-config.php"
-	chown -R www-data "/var/www/$1"
 	mysqladmin create "$dbname"
 	echo "GRANT ALL PRIVILEGES ON \`$dbname\`.* TO \`$userid\`@localhost IDENTIFIED BY '$passwd';" | \
 		mysql
