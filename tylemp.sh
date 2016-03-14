@@ -117,9 +117,9 @@ function install_exim4 {
 }
 
 function install_mysql {
-	# Install the MySQL packages
-	check_install mysqld mysql-server
-	check_install mysql mysql-client
+	# Install the MariaDB packages
+	check_install mysqld mariadb-server
+	check_install mysql mariadb-client
 
 	# all the related files.
 	invoke-rc.d mysql stop
