@@ -121,6 +121,7 @@ function install_mysql {
 	check_install mysqld mariadb-server
 	check_install mysql mariadb-client
 
+	invoke-rc.d mysql stop
 	# all the related files.
 	cat > /etc/mysql/conf.d/actgod.cnf <<END
 [mysqld]
