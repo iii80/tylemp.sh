@@ -156,6 +156,7 @@ function install_nginx {
 
 	sed -i s/'^worker_processes [0-9];'/'worker_processes 1;'/g /etc/nginx/nginx.conf
 	sed -i s/'^user  nginx;'/'user  www-data;'/g /etc/nginx/nginx.conf
+	sed -i s/'# gzip_'/'gzip_'/g /etc/nginx/nginx.conf
 	invoke-rc.d nginx restart
 	if [ ! -d /var/www ];
 		then
