@@ -859,6 +859,7 @@ invoke-rc.d nginx restart
 ########################################################################
 export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
+function tyinstall {
 check_sanity
 case "$1" in
 exim4)
@@ -956,3 +957,6 @@ echo $2:$3 | chpasswd
 	done
 	;;
 esac
+}
+
+tyinstall $1 | tee /tmp/tylemp.log
