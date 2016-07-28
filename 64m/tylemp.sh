@@ -1011,4 +1011,4 @@ echo $2:$3 | chpasswd
 	;;
 esac
 }
-tyinstall $1 | tee -a /tmp/tylemp.log
+tyinstall $1 $2 $3 | tee -a /tmp/tylemp.log
