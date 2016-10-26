@@ -420,36 +420,52 @@ function install_typecho {
 
 	cat > "/etc/nginx/conf.d/$1.conf" <<END
 server
-	{
-		listen       80;
+        {
+                listen       80;
 
-		server_name $1;
-		index index.html index.htm index.php default.html default.htm default.php;
-		root  /var/www/$1;
+                server_name $1;
+                index index.html index.htm index.php default.html default.htm default.php;
+                root  /var/www/$1;
 
-	location / {
-		try_files \$uri \$uri/ /index.php;
-	}
+                location / 
+                        {
+                                index index.html index.php;
+                                if (-f $request_filename/index.html)
+                                        {
+                                                rewrite (.*) $1/index.html break;
+                                        }
 
-	location ~ .*\.php(\/.*)*$ {
-		#try_files \$uri =404;
-		fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-		include fastcgi_params;
-		fastcgi_pass unix:/var/run/php5-fpm.sock;
-	}
+                                if (-f $request_filename/index.php)
+                                        {
+                                                rewrite (.*) $1/index.php;
+                                        }
 
-		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
-			{
-				expires      30d;
-			}
+                                if (!-f $request_filename)
+                                        {
+                                                rewrite (.*) /index.php;
+                                        }
+                        }
 
-		location ~ .*\.(js|css)?$
-			{
-				expires      30d;
-			}
+                location ~ .*\.php(\/.*)*$ 
+                        {
+                                #try_files \$uri =404;
+                                fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+                                include fastcgi_params;
+                                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                        }
 
-		$al
-	}
+                location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
+                        {
+                                expires      30d;
+                        }
+
+                location ~ .*\.(js|css)?$
+                        {
+                                expires      30d;
+                        }
+
+        }
+
 END
 
 	invoke-rc.d nginx reload
