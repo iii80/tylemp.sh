@@ -637,6 +637,7 @@ END
 	userid=`get_domain_name $1`
 	# MySQL userid cannot be more than 15 characters long
 	userid="${dbname:0:15}"
+	passwd=`get_password "$userid@mysql"`
 	mysqladmin create "$dbname"
 	echo "GRANT ALL PRIVILEGES ON \`$dbname\`.* TO \`$userid\`@localhost IDENTIFIED BY '$passwd';" | \
 		mysql
