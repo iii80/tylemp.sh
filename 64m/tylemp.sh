@@ -105,7 +105,6 @@ END
         #fix xinet does not autostart(bandwagonhost debian-8.0-x86_64)
         insserv -r xinetd
         insserv -d xinetd
-
 	invoke-rc.d xinetd restart
 }
 
