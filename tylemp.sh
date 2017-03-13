@@ -1,5 +1,6 @@
 #!/bin/bash
-#First usable tylemp.sh on Debian 8.
+# Usable tylemp.sh on Debian 8.
+# Version: Stable-20170313
 
 function check_install {
 	if [ -z "`which "$1" 2>/dev/null`" ]
