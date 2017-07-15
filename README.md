@@ -8,10 +8,10 @@ This README would normally document whatever steps are necessary to get your app
 * Besides, this can quickly set up Wordpress and other CMS without manually configure Mysql and Nginx. 此外，还可以在不需要手动设置Nginx和Mysql的情况下快速安装Wordpress和其它CMS。
 * It also do some optimization and security work like deleting unneccesary components and changeing SSH port(manually). 此外，脚本还会进行优化和安全设置比如删除一些非必须系统组件和更改ssh端口(手动运行). 
 
-### How do I get set up? 如何运行###
+### How do I get set up? 如何运行 ###
 
-* ~~~~wget http://w3.gubo.org/pubfiles/tylemp/9/tylemp.sh # Get script(pay attention and find right script for your version) 下载脚本(注意下载系统对应版本的脚本)  ~~~~
-* ~~~~bash tylemp.sh stable # Optimize system and set up LEMP 优化系统并搭建LEMP环境  ~~~~
+* ```wget http://w3.gubo.org/pubfiles/tylemp/9/tylemp.sh # Get script(pay attention and find right script for your version) 下载脚本(注意下载系统对应版本的脚本) ```
+* ```bash tylemp.sh stable # Optimize system and set up LEMP 优化系统并搭建LEMP环境  ```
 * More in the Command List and Notes 更多的在“命令行列表”及“注意”里
 
 
@@ -39,7 +39,7 @@ You can find configure files and log path in this part 在这部分你会看到�
 ### Path of conf 配置文件路径 ###
 ```
 /etc/nginx/nginx.conf  #nginx Conf file / Nginx配置文件
-/etc/php5/fpm/php.ini    # PHP  conf file / php配置文件
+/etc/php5/fpm/php.ini    # PHP conf file / php配置文件
 ~/.my.cnf                 # Mysql/MariaDB root user name and password / Mysql/MariaDB根用户名和密码
 /etc/nginx/conf.d/          # Nginx conf for added websites / 已添加网站的Nginx配置文件
 ```
