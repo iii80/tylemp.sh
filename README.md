@@ -16,7 +16,8 @@ This README would normally document whatever steps are necessary to get your app
 
 
 ### Command List 命令行列表###
- ~~~~bash tylemp.sh system # 优化系统，删除不需要组件，dropbear替代sshd
+```
+bash tylemp.sh system # 优化系统，删除不需要组件，dropbear替代sshd
 bash tylemp.sh exim4 # 更轻量级邮件系统
 bash tylemp.sh mysql # 安装mysql
 bash tylemp.sh nginx # 安装nginx，默认一个进程，可调整
@@ -31,17 +32,17 @@ bash tylemp.sh addnginx 2 #调整nginx进程，这里2表示调整后的进程�
 bash tylemp.sh sshport 22022 #更改ssh端口号22022，建议更改10000以上端口。重启后生效。
 bash tylemp.sh rainloop www.yourdomain.com  # 增加Gmail的web客户端一键安装
 bash tylemp.sh carbon www.yourdomain.com  # 增加Carbon Forum的一键安装
- ~~~~
+```
  
 ## Notes 注意##
 You can find configure files and log path in this part 在这部分你会看到主要的配置文件和日志文件路径
 ### Path of conf 配置文件路径 ###
-~~~~
+```
 /etc/nginx/nginx.conf  #nginx Conf file / Nginx配置文件
 /etc/php5/fpm/php.ini    # PHP  conf file / php配置文件
 ~/.my.cnf                 # Mysql/MariaDB root user name and password / Mysql/MariaDB根用户名和密码
 /etc/nginx/conf.d/          # Nginx conf for added websites / 已添加网站的Nginx配置文件
-~~~~
+```
 
 
 
