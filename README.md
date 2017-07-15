@@ -10,8 +10,8 @@ This README would normally document whatever steps are necessary to get your app
 
 ### How do I get set up? 如何运行 ###
 
-* ```wget http://w3.gubo.org/pubfiles/tylemp/9/tylemp.sh # Get script(pay attention and find right script for your version) 下载脚本(注意下载系统对应版本的脚本) ```
-* ```bash tylemp.sh stable # Optimize system and set up LEMP 优化系统并搭建LEMP环境  ```
+* ```wget http://w3.gubo.org/pubfiles/tylemp/9/tylemp.sh # Get script(pay attention and find right script for your version) 下载脚本(注意下载系统对应版本的脚本) 
+* bash tylemp.sh stable # Optimize system and set up LEMP 优化系统并搭建LEMP环境  ```
 * More in the Command List and Notes 更多的在“命令行列表”及“注意”里
 
 
@@ -34,9 +34,10 @@ bash tylemp.sh rainloop www.yourdomain.com  # 增加Gmail的web客户端一键�
 bash tylemp.sh carbon www.yourdomain.com  # 增加Carbon Forum的一键安装
 ```
  
-## Notes 注意##
+### Notes 注意###
 You can find configure files and log path in this part 在这部分你会看到主要的配置文件和日志文件路径
-### Path of conf 配置文件路径 ###
+
+#### Path of conf 配置文件路径 ####
 ```
 /etc/nginx/nginx.conf  #nginx Conf file / Nginx配置文件
 /etc/php5/fpm/php.ini    # PHP conf file / php配置文件
@@ -44,15 +45,21 @@ You can find configure files and log path in this part 在这部分你会看到�
 /etc/nginx/conf.d/          # Nginx conf for added websites / 已添加网站的Nginx配置文件
 ```
 
+#### Path of log 日志文件路径 ####
+
+```
+/var/log/nginx   #Nginx log files path / Nginx 日志文件路径
+/var/log/php5-fpm.log  #PHP log files path / PHP文件路径
+```
 
 
-### Contribution guidelines ###
+### Contribution guidelines 贡献准则###
 
-* Writing tests
-* Code review
-* Other guidelines
+* Everyone is welcome to contribute 欢迎所有人贡献代码
+* Please spread the words to who need 请把这个脚本告知有需要的人
 
-### Who do I talk to? ###
 
-* Repo owner or admin
-* Other community or team contact
+### Who do I talk to? 我应该和谁讨论###
+
+* Repo owner or admin 所有作者和拥有者
+* Other community or team contact 使用者
