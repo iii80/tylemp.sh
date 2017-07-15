@@ -1,7 +1,3 @@
-# README #
-
-This README would normally document whatever steps are necessary to get your application up and running.
-
 ### What is this repository for? 这个脚本作用 ###
 
 * This is for those who need to quick set up LEMP on their Debian.  这脚本方便各位在Debian上快速搭建LEMP环境。 
@@ -48,8 +44,9 @@ You can find configure files and log path in this part 在这部分你会看到�
 #### Path of log 日志文件路径 ####
 
 ```
-/var/log/nginx   #Nginx log files path / Nginx 日志文件路径
-/var/log/php5-fpm.log  #PHP log files path / PHP文件路径
+/var/log/nginx   # Nginx log files path / Nginx 日志文件路径
+/var/log/php5-fpm.log  # PHP log files path / PHP文件路径
+/tmp/tylemp.log # Script running log / 脚本运行日志 
 ```
 
 
@@ -57,6 +54,10 @@ You can find configure files and log path in this part 在这部分你会看到�
 
 * Everyone is welcome to contribute 欢迎所有人贡献代码
 * Please spread the words to who need 请把这个脚本告知有需要的人
+
+### How to debug / 出错该怎么办###
+* Please firstly check the log ```/tmp/tylemp.log``` and try to solve the problem. If you can not handle it, please send this file to guboorg@gmail.com
+* 请先检查```/tmp/tylemp.log``` 这个日志文件，如果实在不能解决请把这个文件发送到我的邮箱 guboorg@gmail.com
 
 
 ### Who do I talk to? 我应该和谁讨论###
