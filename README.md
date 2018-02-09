@@ -6,8 +6,8 @@
 
 ### How do I get set up? 如何运行 ###
 
-* ```wget http://w3.gubo.org/pubfiles/tylemp/9/tylemp.sh # Get script(pay attention and find right script for your version) 下载脚本(注意下载系统对应版本的脚本) 
-* bash tylemp.sh stable # Optimize system and set up LEMP 优化系统并搭建LEMP环境  ```
+* wget http://w3.gubo.org/pubfiles/tylemp/9/tylemp.sh # Get script(pay attention and find right script for your version) 下载脚本(注意下载系统对应版本的脚本) 
+* bash tylemp.sh stable # Optimize system and set up LEMP 优化系统并搭建LEMP环境  
 * More in the Command List and Notes 更多的在“命令行列表”及“注意”里
 
 
