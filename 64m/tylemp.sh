@@ -402,7 +402,7 @@ function install_typecho {
 
 	# Downloading the typecho' latest and greatest distribution.
 		mkdir /tmp/typecho.$$
-	wget -O - "https://github.com/typecho/typecho/releases/download/v1.0-14.10.10-release/1.0.14.10.10.-release.tar.gz" | \
+	wget -O - "http://typecho.org/downloads/1.1-17.10.30-release.tar.gz" | \
 		tar zxf - -C /tmp/typecho.$$
 	mv /tmp/typecho.$$/build/ "/var/www/$1"
 	rm -rf /tmp/typecho.$$
