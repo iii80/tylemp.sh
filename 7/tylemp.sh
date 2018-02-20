@@ -1,6 +1,6 @@
 #!/bin/bash
 # First usable tylemp.sh on Debian 7.
-# Version: Stable-20170313
+# Version: Stable-20180220
 
 function check_install {
 	if [ -z "`which "$1" 2>/dev/null`" ]
@@ -364,54 +364,54 @@ function install_typecho {
 
 	# Setting up Nginx mapping
 
-	cat > "/etc/nginx/conf.d/$1.conf" <<END
+	cat > "/etc/nginx/conf.d/$1.conf" <<'END'
+    
 server
 	{
 		listen       80;
 
-		server_name $1;
+		server_name tydomain;
 		index index.html index.htm index.php default.html default.htm default.php;
-		root  /var/www/$1;
+		root  /var/www/tydomain;
 
-		location / 
-			{
-				index index.html index.php;
-				if (-f $request_filename/index.html)
-					{
-						rewrite (.*) $1/index.html break;
-					}
+	location / {
 
-				if (-f $request_filename/index.php)
-					{
-						rewrite (.*) $1/index.php;
-					}
+		index index.html index.php;
+		if (-f $request_filename/index.html) {
 
-				if (!-f $request_filename)
-					{
-						rewrite (.*) /index.php;
-					}
-			}
+			rewrite (.*) $1/index.html break;
+		}
+		if (-f $request_filename/index.php) {
 
-		location ~ .*\.php(\/.*)*$ 
-			{
-				#try_files \$uri =404;
-				fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-				include fastcgi_params;
-				fastcgi_pass unix:/var/run/php5-fpm.sock;
-			}
+			rewrite (.*) $1/index.php;
+		}
+		if (!-f $request_filename) {
 
-		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
-			{
-				expires      30d;
-			}
-
-		location ~ .*\.(js|css)?$
-			{
-				expires      30d;
-			}
-
+			rewrite (.*) /index.php;
+		}
 	}
+
+	location ~ .*\.php(\/.*)*$ {
+
+		#try_files $uri =404;
+		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+		include fastcgi_params;
+		fastcgi_pass unix:/var/run/php5-fpm.sock;
+	}
+
+	location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$ {
+
+		expires 30d;
+	}
+
+	location ~ .*\.(js|css)?$ {
+
+		expires 30d;
+	}
+
+}
 END
+sed -i s/tydomain/$1/g /etc/nginx/conf.d/$1.conf
 
 	invoke-rc.d nginx reload
 		
@@ -429,7 +429,7 @@ END
 
 	
 	cat >> "/root/$1.mysql.txt" <<END
-[typycho_myqsl]
+[typecho_myqsl]
 dbname = $dbname
 username = $userid
 password = $passwd

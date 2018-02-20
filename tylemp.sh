@@ -367,7 +367,7 @@ function install_typecho {
 
 	# Setting up Nginx mapping
 
-	cat > "/etc/nginx/conf.d/$1.conf" <<'END'
+cat > "/etc/nginx/conf.d/$1.conf" <<'END'
     
 server
 	{
@@ -432,7 +432,7 @@ sed -i s/tydomain/$1/g /etc/nginx/conf.d/$1.conf
 
 	
 	cat >> "/root/$1.mysql.txt" <<END
-[typecho_myqsl]
+[typycho_myqsl]
 dbname = $dbname
 username = $userid
 password = $passwd

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Usable tylemp.sh on Debian 8.
-# Version: Stable-20180220
+# First usable tylemp.sh on Ubuntu 16.10.
+# Version: alpha-20180220
 
 function check_install {
 	if [ -z "`which "$1" 2>/dev/null`" ]
@@ -9,7 +9,7 @@ function check_install {
 		shift
 		while [ -n "$1" ]
 		do
-		DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes install "$1"
+		DEBIAN_FRONTEND=noninteractive apt-get -q -y --allow install "$1"
 		print_info "$1 installed for $executable"
 		shift
 		done
@@ -103,9 +103,6 @@ type = unlisted
 }
 END
 
-	#fix xinet does not autostart(bandwagonhost debian-8.0-x86_64)
-	insserv -r xinetd 
-	insserv -d xinetd 
 	invoke-rc.d xinetd restart
 }
 
@@ -187,7 +184,7 @@ EXND
 function install_php {
 	service mysql stop
 	service nginx stop
-   apt-get -q -y --force-yes install php5-fpm php5-mysqlnd php5-gd php5-mcrypt php5-tidy php5-curl
+   apt-get -q -y --allow install php-fpm php-mysqlnd php-gd php-mcrypt php-tidy php-curl
 	service mysql start
 	service nginx start
 }
@@ -295,7 +292,7 @@ server
 
 		location / 
 			{
-				try_files \$uri \$uri/ /index.php;
+				try_files $uri $uri/ /index.php;
 			}
 
 		location ~ \.php$ 
@@ -303,7 +300,7 @@ server
 				try_files \$uri =404;
 				fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
 				include fastcgi_params;
-				fastcgi_pass unix:/var/run/php5-fpm.sock;
+				fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
 			}
 	
 		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
@@ -347,7 +344,7 @@ function install_typecho {
 
 	# Downloading the typecho' latest and greatest distribution.
 		mkdir /tmp/typecho.$$
-	wget -O - "http://typecho.org/downloads/1.1-17.10.30-release.tar.gz" | \
+	wget -O - "https://github.com/typecho/typecho/releases/download/v1.0-14.10.10-release/1.0.14.10.10.-release.tar.gz" | \
 		tar zxf - -C /tmp/typecho.$$
 	mv /tmp/typecho.$$/build/ "/var/www/$1"
 	rm -rf /tmp/typecho.$$
@@ -491,7 +488,7 @@ server
 	        try_files \$uri =404;
 	        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
 	        include fastcgi_params;
-	        fastcgi_pass unix:/var/run/php5-fpm.sock;
+	        fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
 	}
 	
 		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
@@ -572,7 +569,7 @@ server
 	        try_files \$uri =404;
 	        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
 	        include fastcgi_params;
-	        fastcgi_pass unix:/var/run/php5-fpm.sock;
+	        fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
 	}
 	
 		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
@@ -663,7 +660,7 @@ server
 		try_files \$uri =404;
 		fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
 		include fastcgi_params;
-		fastcgi_pass unix:/var/run/php5-fpm.sock;
+		fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
 	}
 
 		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
@@ -733,7 +730,7 @@ server
 		try_files \$uri =404;
 		fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
 		include fastcgi_params;
-		fastcgi_pass unix:/var/run/php5-fpm.sock;
+		fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
 	}
 
 		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
@@ -837,7 +834,7 @@ function update_nginx {
 	apt-get -q -y update
 	invoke-rc.d nginx stop
 	apt-get -q -y remove nginx
-	apt-get -q -y --force-yes install nginx
+	apt-get -q -y --allow install nginx
 	if [ ! -d /etc/nginx ];
 		then
 		mkdir /etc/nginx
